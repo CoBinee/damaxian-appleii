@@ -1,0 +1,47 @@
+crt0.o              :   crt0.s \
+                        apple2.inc iocs.inc
+iocs.o              :   iocs.s iocs.inc \
+                        apple2.inc
+lib.o               :   lib.s lib.inc \
+                        apple2.inc iocs.inc
+app.o               :   app.s app.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        stats.inc
+stats.o             :   stats.s stats.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc
+field.o             :   field.s field.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc
+title.o             :   title.s title.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc stats.inc field.inc \
+                        star.inc
+game.o              :   game.s game.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc stats.inc field.inc \
+                        ship.inc alien.inc shot.inc bullet.inc star.inc
+ship.o              :   ship.s ship.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc bomb.inc
+alien.o             :   alien.s alien.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc bomb.inc
+shot.o              :   shot.s shot.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc
+bullet.o            :   bullet.s bullet.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc
+star.o              :   star.s star.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc
+bomb.o              :   bomb.s bomb.inc \
+                        apple2.inc iocs.inc lib.inc \
+                        app.inc \
+                        game.inc
