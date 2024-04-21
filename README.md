@@ -1,6 +1,6 @@
 # DAMAXIAN
 
-[![DAMAXIAN](http://img.youtube.com/vi/***/0.jpg)](https://www.youtube.com/watch?v=***)
+[![DAMAXIAN](http://img.youtube.com/vi/Enx5zJESIZI/0.jpg)](https://www.youtube.com/watch?v=Enx5zJESIZI)
 
 ## SIDELOAD
 Releases にある damaxian-xxx.dsk ファイルをダウンロード、[Apple\]\[js](https://www.scullinsteel.com/apple2/) などの AppleII 環境で動かしてください。

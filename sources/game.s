@@ -474,17 +474,17 @@
     ; シップの位置の取得
     lda     _ship + Ship::position_x
     clc
-    adc     #$02
+    adc     #$03
     sta     GAME_0_HIT_DST_LEFT
 ;   clc
-    adc     #$03
+    adc     #$01
     sta     GAME_0_HIT_DST_RIGHT
     lda     _ship + Ship::position_y
     clc
-    adc     #$02
+    adc     #$03
     sta     GAME_0_HIT_DST_TOP
 ;   clc
-    adc     #$03
+    adc     #$01
     sta     GAME_0_HIT_DST_BOTTOM
 
     ; エイリアンの判定
