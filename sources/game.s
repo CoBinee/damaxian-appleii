@@ -377,9 +377,9 @@
     .byte   9, 11
     .word   @draw_score_string
 @draw_score_string:
-    .byte   _TO, _KU, _TE, __N, ' ', '-', ' '
+    .byte   _KE, _tu, _KA, ' '
 @draw_score_number_string:
-    .byte   '0', '1', '2', '3', '4', '5', '6', '7', ' ', $00
+    .byte   '0', '1', '2', '3', '4', '5', '6', '7', ' ', _TE, __N, $00
 @erase_score_arg:
     .byte   9, 11
     .word   @erase_score_string
