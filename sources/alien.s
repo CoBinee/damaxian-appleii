@@ -465,6 +465,15 @@
     lda     alien_tileset_up_h, x
     sta     alien_tileset_h, x
 
+;   ; BEEP の再生
+;   txa
+;   pha
+;   ldx     #<@beep
+;   lda     #>@beep
+;   jsr     _IocsBeepQue
+;   pla
+;   tax
+
     ; 初期化の完了
     inc     alien_state, x
 @initialized:
@@ -515,6 +524,25 @@
     ; 終了
 @end:
     rts
+
+; BEEP
+@beep:
+;   .ascii  "T1V15L1"
+;   .ascii  "O6CO5BA#AG#GF#FED#DDC#CO4BA#AAGF#FED#DC#CO3BA#AG#GF#FED#DC#CO2BA#A"
+    .byte   _O5B,  1
+    .byte   _O5Gp, 1
+    .byte   _O5F,  1
+    .byte   _O5D,  1
+    .byte   _O5C,  1
+    .byte   _O4A,  1
+    .byte   _O4Fp, 1
+    .byte   _O4Dp, 1
+    .byte   _O4C,  1
+    .byte   _O3A,  1
+    .byte   _O3Fp, 1
+    .byte   _O3Dp, 1
+    .byte   _O3C,  1
+    .byte   IOCS_BEEP_END
 
 .endproc
 
@@ -624,7 +652,9 @@
 
     ; 初期化
     lda     alien_state, x
-    bne     @initialized
+    beq     :+
+    jmp     @initialized
+:
 
     ; アニメーションの設定
     lda     #$00
@@ -684,6 +714,15 @@
     cmp     @bullet_entry, y
     bne     :---
 @bullet_end:
+
+    ; BEEP の再生
+    txa
+    pha
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
+    pla
+    tax
 
     ; 初期化の完了
     inc     alien_state, x
@@ -777,6 +816,22 @@
     .byte   $00
     .byte   $01
     .byte   $01
+
+; BEEP
+@beep:
+;   .ascii  "T1V15L0"
+;   .ascii  "O4AGFEDCAGFEDCCDEFGABO5CDEFGABO6CO5AFEDEF"
+    .byte   _O4A, 1
+    .byte   _O4D, 1
+    .byte   _O4F, 1
+    .byte   _O4C, 1
+    .byte   _O4G, 1
+    .byte   _O5D, 1
+    .byte   _O5A, 1
+    .byte   _O5F, 1
+    .byte   _O5F, 1
+    .byte   IOCS_BEEP_END
+
 
 .endproc
 

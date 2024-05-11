@@ -28,10 +28,10 @@
 .proc   _IocsInitialize
 
     ; スタックの設定
-    tsx
-    stx     IOCS_0_STACK_L
-    lda     #$01
-    sta     IOCS_0_STACK_H
+;   tsx
+;   stx     IOCS_0_STACK_L
+;   lda     #$01
+;   sta     IOCS_0_STACK_H
 
     ; FILE MANAGER PARAMETER LIST の取得
     lda     #$0e
@@ -55,6 +55,15 @@
     sta     IOCS_0_RANDOM_L
     lda     #$20
     sta     IOCS_0_RANDOM_H
+
+    ; BEEP の初期化
+.if     ::IOCS_BEEP
+    lda     #$00
+    sta     IOCS_0_BEEP_L
+    sta     IOCS_0_BEEP_H
+    sta     IOCS_0_BEEP_INDEX
+    sta     IOCS_0_BEEP_COUNT
+.endif
 
     ; カーソル位置を最下行に設定
     lda     #23
@@ -86,6 +95,42 @@
     ; 乱数の更新
     jsr     _IocsGetRandomNumber
 
+    ; BEEP の再生
+.if     ::IOCS_BEEP
+    lda     IOCS_0_BEEP_L
+    ora     IOCS_0_BEEP_H
+    beq     @beep_end
+    lda     IOCS_0_BEEP_COUNT
+    bne     @beep_count
+    ldy     IOCS_0_BEEP_INDEX
+    lda     (IOCS_0_BEEP), y
+    tax
+    lda     #_L256
+    cpx     #IOCS_BEEP_END
+    bne     :+
+    lda     #$00
+    sta     IOCS_0_BEEP_L
+    sta     IOCS_0_BEEP_H
+    jmp     @beep_end
+:
+    cpx     #_R
+    beq     :+
+    jsr     _IocsBeepNote
+    jmp     :++
+:
+    jsr     _IocsBeepRest
+:
+    ldy     IOCS_0_BEEP_INDEX
+    iny
+    lda     (IOCS_0_BEEP), y
+    sta     IOCS_0_BEEP_COUNT
+    iny
+    sty     IOCS_0_BEEP_INDEX
+@beep_count:
+    dec     IOCS_0_BEEP_COUNT
+@beep_end:
+.endif
+
     ; 終了
     rts
 
@@ -93,6 +138,7 @@
 
 ; CATALOG を実行する
 ;
+.if     IOCS_CATALOG
 .global _IocsCatalog
 .proc   _IocsCatalog
 
@@ -132,6 +178,7 @@
     rts
 
 .endproc
+.endif
 
 ; バイナリファイルを読み込む
 ;
@@ -966,6 +1013,7 @@
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_MASK でマスクして指定されたタイル位置へ描画する
 ;
+.if     IOCS_MASKED
 .proc   IocsDraw7x8MaskedXy
 
     ; IN
@@ -978,10 +1026,12 @@
     jsr     _IocsGetVramAddress
 
 .endproc
+.endif
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_MASK でマスクして指定された VRAM アドレスへ描画する
 ;
-.proc IocsDraw7x8MaskedAx
+.if     IOCS_MASKED
+.proc   IocsDraw7x8MaskedAx
 
     ; IN
     ;   IOCS_0_HGR_SRC  = 7x8 重ね合わせるピクセルパターン
@@ -993,10 +1043,12 @@
     sta     IOCS_0_HGR_DST_H
 
 .endproc
+.endif
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_MASK でマスクして IOCS_0_HGR_DST へ描画する
 ;
-.proc IocsDraw7x8Masked0
+.if     IOCS_MASKED
+.proc   IocsDraw7x8Masked0
 
     ; IN
     ;   IOCS_0_HGR_SRC  = 7x8 重ね合わせるピクセルパターン
@@ -1102,9 +1154,11 @@
     rts
 
 .endproc
+.endif
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_BASE に IOCS_0_MASK でマスクして重ね合わせて指定されたタイル位置へ描画する
 ;
+.if     IOCS_LAYERED
 .proc   IocsDraw7x8LayeredXy
 
     ; IN
@@ -1118,10 +1172,13 @@
     jsr     _IocsGetVramAddress
 
 .endproc
+.endif
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_BASE に IOCS_0_MASK でマスクして重ね合わせて指定された VRAM アドレスへ描画する
 ;
-.proc IocsDraw7x8LayeredAx
+.if     IOCS_LAYERED
+.proc   IocsDraw7x8LayeredAx
+
 
     ; IN
     ;   IOCS_0_HGR_SRC  = 7x8 重ね合わせるピクセルパターン
@@ -1134,10 +1191,12 @@
     sta     IOCS_0_HGR_DST_H
 
 .endproc
+.endif
 
 ; IOCS_0_HGR_SRC の 7x8 ピクセルパターンを IOCS_0_BASE に IOCS_0_MASK でマスクして重ね合わせて IOCS_0_HGR_DST へ描画する
 ;
-.proc IocsDraw7x8Layered0
+.if     IOCS_LAYERED
+.proc   IocsDraw7x8Layered0
 
     ; IN
     ;   IOCS_0_HGR_SRC  = 7x8 重ね合わせるピクセルパターン
@@ -1244,6 +1303,7 @@
     rts
 
 .endproc
+.endif
 
 ; 文字列を描画する
 ;
@@ -1471,6 +1531,7 @@
 
 ; 7x8 ピクセルパターンのマスクしたタイルセットを描画する
 ;
+.if     IOCS_MASKED
 .global _IocsDraw7x8MaskedTileset
 .proc   _IocsDraw7x8MaskedTileset
 
@@ -1590,9 +1651,11 @@
     rts
 
 .endproc
+.endif
 
 ; 7x8 ピクセルパターンのタイルマップを描画する
 ;
+.if     IOCS_TILEMAP
 .global _IocsDraw7x8Tilemap
 .proc   _IocsDraw7x8Tilemap
 
@@ -1730,9 +1793,11 @@
     rts
 
 .endproc
+.endif
 
 ; 7x8 ピクセルパターンのスプライトを描画する
 ;
+.if     IOCS_SPRITE
 .global _IocsDraw7x8Sprite
 .proc   _IocsDraw7x8Sprite
 
@@ -1929,6 +1994,7 @@
     .byte   $00
 
 .endproc
+.endif
 
 ; COUT による文字列の出力を行う
 ;
@@ -2010,6 +2076,190 @@
     rts
 
 .endproc
+
+; BEEP で音符を再生する
+;
+.if     IOCS_BEEP
+.global _IocsBeepNote
+.proc   _IocsBeepNote
+
+    ; IN
+    ;   x = 音階
+    ;   a = 音長
+
+    ; 1 回の音符の再生
+    sta     IOCS_0_BEEP_LENGTH
+    ldy     iocs_beep_l256_count, x
+:
+    lda     SPEAKER                 ;    4 cycle
+    lda     iocs_beep_freq_count, x ;    4 cycle
+                                    ; =  8 cycle
+:
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    sec                             ;    2 cycle
+    sbc     #$01                    ;    2 cycle
+    bne     :-                      ;    3 cycle
+                                    ; = 17 cycle
+                                    ;   -1 cycle
+    dey                             ;    2 cycle
+    beq     :+                      ;    3 cycle
+                                    ; =  4 cycle
+                                    ;   -1 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    jmp     :--                     ;    3 cycle
+                                    ; = 12 cycle
+:
+    ldy     iocs_beep_l256_count, x ;    4 cycle
+    dec     IOCS_0_BEEP_LENGTH      ;    5 cycle
+    bne     :---                    ;    3 cycle
+                                    ; = 12 cycle
+
+    ; 終了
+    rts
+
+.endproc
+.endif
+
+; BEEP で休符を再生する
+;
+.if     IOCS_BEEP
+.global _IocsBeepRest
+.proc   _IocsBeepRest
+
+    ; IN
+    ;   a = 音長
+
+    ; 1 回の休符の再生
+    sta     IOCS_0_BEEP_LENGTH
+    ldx     #_O4A
+    ldy     iocs_beep_l256_count, x
+:
+    lda     :-                      ;    4 cycle
+    lda     iocs_beep_freq_count, x ;    4 cycle
+                                    ; =  8 cycle
+:
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    sec                             ;    2 cycle
+    sbc     #$01                    ;    2 cycle
+    bne     :-                      ;    3 cycle
+                                    ; = 17 cycle
+                                    ;   -1 cycle
+    dey                             ;    2 cycle
+    beq     :+                      ;    3 cycle
+                                    ; =  4 cycle
+                                    ;   -1 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    nop                             ;    2 cycle
+    jmp     :--                     ;    3 cycle
+                                    ; = 12 cycle
+:
+    ldy     iocs_beep_l256_count, x ;    4 cycle
+    dec     IOCS_0_BEEP_LENGTH      ;    5 cycle
+    bne     :---                    ;    3 cycle
+                                    ; = 12 cycle
+
+    ; 終了
+    rts
+
+.endproc
+.endif
+
+; BEEP で譜面を再生する
+;
+.if     IOCS_BEEP
+.global _IocsBeepScore
+.proc   _IocsBeepScore
+
+    ; IN
+    ;   ax = 譜面
+
+    ; シーケンスの設定
+    stx     IOCS_0_BEEP_SCORE_L
+    sta     IOCS_0_BEEP_SCORE_H
+    lda     #$00
+    sta     IOCS_0_BEEP_SCORE_INDEX
+    
+    ; 譜面の再生
+@score_loop:
+    ldy     IOCS_0_BEEP_SCORE_INDEX
+    lda     (IOCS_0_BEEP_SCORE), y
+    bmi     @score_end
+    tax
+    iny
+    lda     (IOCS_0_BEEP_SCORE), y
+    cpx     #IOCS_BEEP_R
+    beq     :+
+    jsr     _IocsBeepNote
+    jmp     :++
+:
+    jsr     _IocsBeepRest
+:
+    inc     IOCS_0_BEEP_SCORE_INDEX
+    inc     IOCS_0_BEEP_SCORE_INDEX
+    bne     @score_loop
+    inc     IOCS_0_BEEP_SCORE_H
+    jmp     @score_loop
+@score_end:
+
+    ; 終了
+    rts
+
+.endproc
+.endif
+
+; 更新毎に再生する BEEP を設定する
+;
+.if     IOCS_BEEP
+.global _IocsBeepQue
+.proc   _IocsBeepQue
+
+    ; IN
+    ;   ax = 譜面
+
+    ; BEEP の設定
+    stx     IOCS_0_BEEP_L
+    sta     IOCS_0_BEEP_H
+    lda     #$00
+    sta     IOCS_0_BEEP_INDEX
+    sta     IOCS_0_BEEP_COUNT
+
+    ; 終了
+    rts
+
+.endproc
+.endif
+
+; 設定された BEEP を削除する
+;
+.if     IOCS_BEEP
+.global _IocsBeepUnque
+.proc   _IocsBeepUnque
+
+    ; BEEP の設定
+    lda     #$00
+    sta     IOCS_0_BEEP_L
+    sta     IOCS_0_BEEP_H
+
+    ; 終了
+    rts
+
+.endproc
+.endif
 
 ; A * X の計算を行う
 ;
@@ -2129,7 +2379,6 @@
 
 .endproc
 
-
 ; atan2 の値を取得する
 ;
 .if     IOCS_TRIGONOMETRIC
@@ -2245,7 +2494,6 @@
 
 .endproc
 
-
 ; エラーに対してリトライ待ちをする
 ;
 .global _IocsRetry
@@ -2305,20 +2553,24 @@
 
 ; フォント
 ;
-
-; ASCII
 .global _iocs_font
 _iocs_font:
+
 .incbin     "resources/fonts/font-7.ts"
 
-; カナ
+; かな
+;
+.if     IOCS_KANA
+.global _iocs_kana
+_iocs_kana:
 .incbin     "resources/fonts/kana-7a.ts"
 .incbin     "resources/fonts/kana-7b.ts"
+.endif
 
 ; HiRes グラフィックス
 ;
 
-; VRAM LOW アドレス
+; VRAM アドレス
 .global _iocs_hgr_tile_y_address_low
 _iocs_hgr_tile_y_address_low:
 
@@ -2326,13 +2578,104 @@ _iocs_hgr_tile_y_address_low:
     .byte   <$2028, <$20a8, <$2128, <$21a8, <$2228, <$22a8, <$2328, <$23a8
     .byte   <$2050, <$20d0, <$2150, <$21d0, <$2250, <$22d0, <$2350, <$23d0
 
-; VRAM HIGH アドレス
 .global _iocs_hgr_tile_y_address_high
 _iocs_hgr_tile_y_address_high:
 
     .byte   >$2000, >$2080, >$2100, >$2180, >$2200, >$2280, >$2300, >$2380
     .byte   >$2028, >$20a8, >$2128, >$21a8, >$2228, >$22a8, >$2328, >$23a8
     .byte   >$2050, >$20d0, >$2150, >$21d0, >$2250, >$22d0, >$2350, >$23d0
+
+; BEEP
+;
+
+; 1 周波数分の待機回数
+.if     IOCS_BEEP
+iocs_beep_freq_count:
+
+    .byte   (IOCS_BEEP_CYCLE_O3C  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3Cp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3D  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3Dp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3E  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3F  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3Fp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3G  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3Gp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3A  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3Ap - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O3B  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4C  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4Cp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4D  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4Dp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4E  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4F  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4Fp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4G  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4Gp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4A  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4Ap - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O4B  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5C  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5Cp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5D  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5Dp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5E  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5F  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5Fp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5G  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5Gp - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5A  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5Ap - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_O5B  - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_PI   - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+    .byte   (IOCS_BEEP_CYCLE_PO   - IOCS_BEEP_CYCLE_BASE) / IOCS_BEEP_CYCLE_LOOP
+.endif
+
+; L256 の長さを再生ためのループ回数
+.if     IOCS_BEEP
+iocs_beep_l256_count:
+
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3C
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3Cp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3D
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3Dp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3E
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3F
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3Fp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3G
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3Gp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3A
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3Ap
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O3B
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4C
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4Cp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4D
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4Dp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4E
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4F
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4Fp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4G
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4Gp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4A
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4Ap
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O4B
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5C
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5Cp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5D
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5Dp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5E
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5F
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5Fp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5G
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5Gp
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5A
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5Ap
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_O5B
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_PI
+    .byte   IOCS_BEEP_CYCLE_L256 / IOCS_BEEP_CYCLE_PO
+.endif
+
 
 ; 三角関数
 ;
@@ -2400,4 +2743,3 @@ iocs_atan2_offset:
     
     .byte   $00, $80, $00, $80
 .endif
-

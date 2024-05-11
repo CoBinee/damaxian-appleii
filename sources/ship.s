@@ -249,6 +249,11 @@
     lda     #$00
     sta     _ship + Ship::animation
 
+    ; BEEP の再生
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
+
     ; 初期化の完了
     inc     _ship + Ship::state
 @initialized:
@@ -293,6 +298,28 @@
     ; 終了
 @end:
     rts
+
+; BEEP
+@beep:
+;   .ascii  "T1V15L0"
+;   .ascii  "O4CO3BAGABO4CDEFGG#R1GFEDCDFGABO5CC#R1CO4BAGAO5CDEGG#R1GFEDCDFGABO6CDO5A#"
+    .byte   _O4C,  1
+    .byte   _O3G,  1
+    .byte   _O4C,  1
+    .byte   _O4F,  1
+    .byte   _O4G,  1
+    .byte   _O4D,  1
+    .byte   _O4F,  1
+    .byte   _O4B,  1
+    .byte   _O5C,  1
+    .byte   _O4G,  1
+    .byte   _O5D,  1
+    .byte   _O5Gp, 1
+    .byte   _O5G,  1
+    .byte   _O5D,  1
+    .byte   _O5F,  1
+    .byte   _O5B,  1
+    .byte   IOCS_BEEP_END
 
 .endproc
 

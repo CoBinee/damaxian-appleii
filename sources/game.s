@@ -116,6 +116,11 @@
     lda     #$30
     sta     _game + Game::count
 
+    ; BEEP の再生
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
+
     ; 初期化の完了
     inc     APP_0_STATE
 @initialized:
@@ -168,6 +173,58 @@
     .word   @erase_string
 @erase_string:
     .asciiz "         "
+
+; BEEP
+@beep:
+;   .ascii  "T1S0M12V16"
+;   .ascii  "L0O6CO5BAGFEDCO4BAG"
+;   .ascii  "L3O3GO4CO3GO4CECEGEGO5C5R5"
+;   .ascii  "L3O3GO4CO3GO4CECEGEGO5C5R5"
+;   .ascii  "L1O4E3DD#DD#DD#DD#DD#DD#DD#DD#"
+;   .ascii  "L0O4CDEFGABO5C"
+;   .ascii  "L0O4CDEFGABO5C"
+;   .ascii  "L0O4CDEFGABO5C"
+;   .ascii  "R5"
+    .byte   _O4G,  1
+    .byte   _O5C,  1
+    .byte   _O4G,  1
+    .byte   _O5C,  1
+    .byte   _O5E,  1
+    .byte   _O5C,  1
+    .byte   _O5E,  1
+    .byte   _O5G,  1
+    .byte   _O5E,  1
+    .byte   _O5G,  1
+    .byte   _O5A,  2
+    .byte   _R,    2
+    .byte   _O4G,  1
+    .byte   _O5C,  1
+    .byte   _O4G,  1
+    .byte   _O5C,  1
+    .byte   _O5E,  1
+    .byte   _O5C,  1
+    .byte   _O5E,  1
+    .byte   _O5G,  1
+    .byte   _O5E,  1
+    .byte   _O5G,  1
+    .byte   _O5A,  2
+    .byte   _R,    2
+    .byte   _O5E,  1
+    .byte   _O5D,  1
+    .byte   _O5Dp, 1
+    .byte   _O5D,  1
+    .byte   _O5Dp, 1
+    .byte   _O5D,  1
+    .byte   _O5Dp, 1
+    .byte   _O5D,  1
+    .byte   _O5Dp, 1
+    .byte   _O5C,  1
+    .byte   _O5E,  1
+    .byte   _O5F,  1
+    .byte   _O5G,  1
+    .byte   _O5A,  1
+    .byte   _O5B,  2
+    .byte   IOCS_BEEP_END
 
 .endproc
 
@@ -225,6 +282,9 @@
     lda     #$60
     sta     _game + Game::count
 
+;   ; BEEP の停止
+;   jsr     _IocsBeepUnque
+
     ; 初期化の完了
     inc     APP_0_STATE
 @initialized:
@@ -232,7 +292,7 @@
     ; ゲームの更新
     jsr     GameUpdate
 
-    ; カウントとキー入力の監視
+    ; カウント
     dec     _game + Game::count
     beq     @next
 
@@ -358,6 +418,11 @@
     jsr     _IocsDrawString
 :
 
+    ; BEEP の再生
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
+
     ; 処理の設定
     lda     #<GameEnd
     sta     APP_0_PROC_L
@@ -397,6 +462,11 @@
     .word   @erase_hiscore_string
 @erase_hiscore_string:
     .asciiz "         "
+
+; BEEP
+@beep:
+    .byte   IOCS_BEEP_PI, 1
+    .byte   IOCS_BEEP_END
 
 .endproc
 

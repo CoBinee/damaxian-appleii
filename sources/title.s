@@ -166,8 +166,11 @@
     sta     title + Title::count
 
     ; BEEP
-    lda     #$87
-    jsr     BELL1
+;   lda     #$87
+;   jsr     BELL1
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
 
     ; 初期化の完了
     inc     APP_0_STATE
@@ -199,6 +202,12 @@
     ; 終了
 @end:
     rts
+
+; BEEP
+@beep:
+    .byte   IOCS_BEEP_PI, 12
+    .byte   IOCS_BEEP_PO, 12
+    .byte   IOCS_BEEP_END
 
 .endproc
 

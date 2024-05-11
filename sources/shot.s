@@ -278,6 +278,11 @@
     eor     #$ff
     sta     shot_tileset_erase_1, x
 
+    ; BEEP の再生
+    ldx     #<@beep
+    lda     #>@beep
+    jsr     _IocsBeepQue
+
     ; 終了
     rts
 
@@ -335,6 +340,14 @@
     .byte   $00, $00, $00, $01, $00, $00, $00
     .byte   $00, $00, $00, $01, $00, $00, $00
     .byte   $00, $00, $00, $01, $00, $00, $00
+
+; BEEP
+@beep:
+    .byte   _O5B,  1
+    .byte   _O5G,  1
+    .byte   _O5Dp, 1
+    .byte   _O4B,  1
+    .byte   IOCS_BEEP_END
 
 .endproc
 

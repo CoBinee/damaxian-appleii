@@ -251,6 +251,10 @@ HIRES                       :=  $c057           ; Hires graphics
 DHIRESON                    :=  $c05e           ; Enable double-width graphics
 DHIRESOFF                   :=  $c05f           ; Disable double-width graphics
 
+; サウンド
+;
+SPEAKER                     :=  $c030           ; Toggle speaker 
+
 ; ゲームコントローラ
 ;
 TAPEIN                      :=  $c060           ; Read casette input / Switch input 3
@@ -267,9 +271,6 @@ PTRIG                       :=  $c070           ; Analog input reset
 ;
 IOUDISON                    :=  $c07e           ; Disable IOU
 IOUDISOFF                   :=  $c07f           ; Enable IOU
-
-; スピーカー
-SPEAKER                     :=  $c030           ; Sound speaker
 
 ; AppleII の制御
 ;

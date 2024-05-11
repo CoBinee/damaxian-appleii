@@ -35,7 +35,7 @@
     ;   GAME_0_WORK_0
 
     ; Y 位置の作成
-    ldx     $00
+    ldx     #$00
 :
     txa
     sta     @position_y, x
